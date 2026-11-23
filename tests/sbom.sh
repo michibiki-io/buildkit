@@ -6,7 +6,8 @@ architecture=$2
 version=$3
 revision=$4
 fixture=$(mktemp -d)
-builder="fuse-sbom-${fixture##*.}"
+suffix=${fixture##*.}
+builder="fuse-sbom-${suffix,,}"
 cleanup() {
   docker buildx rm "$builder" >/dev/null 2>&1 || true
   rm -rf -- "$fixture"
