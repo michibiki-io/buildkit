@@ -18,8 +18,15 @@ def verify(archive, architecture):
         assert hashlib.new(algorithm, data).hexdigest() == value, digest
         return json.loads(data)
 
+    def image_manifests(index):
+        for descriptor in index["manifests"]:
+            if descriptor.get("mediaType") == "application/vnd.oci.image.index.v1+json":
+                yield from image_manifests(blob(descriptor["digest"]))
+            else:
+                yield descriptor
+
     with archive.extractfile(members["index.json"]) as member:
-        manifests = json.load(member)["manifests"]
+        manifests = list(image_manifests(json.load(member)))
     (image,) = (
         descriptor
         for descriptor in manifests
