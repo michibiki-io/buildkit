@@ -12,3 +12,35 @@ jobs:
     uses: ./.github/workflows/native-build.yml
     with:
       source-ref: ${{ github.event.pull_request.head.sha }}
+
+  registry:
+    name: Verify registry publication
+    needs: package
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: buildkit-*
+          path: ${{ runner.temp }}/buildkit-archives
+          merge-multiple: true
+      - name: Publish the verified archives to a disposable registry
+        shell: bash
+        run: |
+          registry=$(docker run --detach --publish 127.0.0.1::5000 \
+            docker.io/library/registry:3.0.0@sha256:6c5666b861f3505b116bb9aa9b25175e71210414bd010d92035ff64018f9457e)
+          trap 'docker rm --force "$registry" >/dev/null' EXIT
+          endpoint=$(docker port "$registry" 5000/tcp)
+          curl --silent --show-error --fail --retry 10 --retry-connrefused --retry-delay 1 "http://$endpoint/v2/"
+          image="$endpoint/buildkit"
+          archives="$RUNNER_TEMP/buildkit-archives"
+          python3 scripts/release/publish_images.py "$archives" "$image" 0.0.0 "$(git rev-parse HEAD)"
+          docker pull --platform linux/amd64 "$image:0.0.0"
+          docker pull --platform linux/arm64 "$image:0.0.0"
+          digest_ref=$(jq -er '.images.buildkit.reference' "$archives/approved-runtime-images.json")
+          docker pull --platform linux/amd64 "$digest_ref"
+          cmp "$archives/release-images.json" "$archives/approved-runtime-images.json"
