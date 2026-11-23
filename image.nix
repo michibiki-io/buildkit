@@ -67,8 +67,7 @@ dockerTools.buildLayeredImage {
     ];
     Volumes."/var/lib/buildkit" = { };
     Labels = {
-      "org.opencontainers.image.source" = "https://github.com/michibiki-io/buildkit";
-      "io.github.michibiki-io.buildkit.upstream-source" = "https://github.com/moby/buildkit";
+      "org.opencontainers.image.source" = "https://github.com/moby/buildkit";
       "org.opencontainers.image.revision" = buildkit.src.rev;
       "org.opencontainers.image.version" = buildkit.version;
     };
