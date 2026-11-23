@@ -1,0 +1,16 @@
+diff --git a/executor/oci/spec.go b/executor/oci/spec.go
+--- a/executor/oci/spec.go
++++ b/executor/oci/spec.go
+@@ -283,8 +283,10 @@ type submounts struct {
+ }
+ 
+ func (s *submounts) subMount(m mount.Mount, subPath string) (mount.Mount, error) {
+-	// for Windows, always go through the sub-mounting process
+-	if path.Join("/", subPath) == "/" && runtime.GOOS != "windows" {
++	// Windows always requires sub-mounting. Linux FUSE helper mount types
++	// must also be materialized here so the OCI runtime receives a bind mount
++	// even when the selector is the entire snapshot root.
++	if path.Join("/", subPath) == "/" && runtime.GOOS != "windows" && !strings.HasPrefix(m.Type, "fuse3.") {
+ 		return m, nil
+ 	}
+ 	if s.m == nil {
