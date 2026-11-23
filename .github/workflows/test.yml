@@ -16,7 +16,7 @@ jobs:
   registry:
     name: Verify registry publication
     needs: package
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -28,6 +28,14 @@ jobs:
           pattern: buildkit-*
           path: ${{ runner.temp }}/buildkit-archives
           merge-multiple: true
+      - name: Require the containerd image store
+        shell: bash
+        run: |
+          if ! docker info --format '{{json .DriverStatus}}' |
+            jq -e 'any(.[]?; . == ["driver-type", "io.containerd.snapshotter.v1"])'; then
+            echo "::error::Release registry verification requires Docker's containerd image store."
+            exit 1
+          fi
       - name: Publish the verified archives to a disposable registry
         shell: bash
         run: |

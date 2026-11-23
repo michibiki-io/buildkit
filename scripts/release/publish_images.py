@@ -40,14 +40,13 @@ def registry_manifest(reference):
 
 def publish_platform(repository, version, architecture, archive_path, name, expected_config):
     docker("load", "--input", str(archive_path))
-    local_id = docker("image", "inspect", "--format", "{{.Id}}", name, capture=True).decode().strip()
-    if local_id != expected_config:
-        raise ValueError(f"Loaded {architecture} image config is {local_id}, expected {expected_config}")
 
     reference = f"{repository}:{version}-{architecture}"
     docker("tag", name, reference)
     docker("push", "--platform", f"linux/{architecture}", reference)
 
+    # The containerd store reports the image target digest as the local ID.
+    # The registry manifest identifies the platform config in either store.
     manifest = registry_manifest(reference)
     actual_config = json.loads(manifest)["config"]["digest"]
     if actual_config != expected_config:
