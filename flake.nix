@@ -1,5 +1,5 @@
 {
-  description = "BuildKit with the fuse-overlayfs SBOM mount fix";
+  description = "BuildKit images maintained by michibiki.io";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/2786a2a72088ecf32aea5b3ec52099e6a7cff78f";

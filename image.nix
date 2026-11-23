@@ -52,7 +52,7 @@ let
 in
 dockerTools.buildLayeredImage {
   # Buildx can use the loaded archive when its initial registry pull fails.
-  name = "127.0.0.1:1/sysbox-buildkit";
+  name = "127.0.0.1:1/buildkit";
   contents = [ root tools cacert dockerTools.fakeNss ];
   extraCommands = ''
     mkdir -p tmp var/lib/buildkit

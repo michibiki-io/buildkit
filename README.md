@@ -1,6 +1,6 @@
-# buildkit-nix
+# buildkit
 
-Nix packaging for [BuildKit v0.35.1](https://github.com/moby/buildkit/tree/412cc86ad3c4252b82e929f9b1b1ad167376ded8) with one patch for SBOM generation on the `fuse-overlayfs` snapshotter. When the SBOM scanner selects a snapshot's entire root, the patch has BuildKit mount the FUSE filesystem first and pass a bind mount to the OCI runtime.
+Docker images maintained by michibiki.io, built with Nix from [BuildKit v0.35.1](https://github.com/moby/buildkit/tree/412cc86ad3c4252b82e929f9b1b1ad167376ded8) with one patch for SBOM generation on the `fuse-overlayfs` snapshotter. When the SBOM scanner selects a snapshot's entire root, the patch has BuildKit mount the FUSE filesystem first and pass a bind mount to the OCI runtime.
 
 ## Build and load
 
@@ -16,7 +16,7 @@ docker buildx create --name fuse-builder --driver docker-container --driver-opt 
 docker buildx inspect --bootstrap fuse-builder
 ```
 
-The image reference includes a Nix-generated tag. Buildx tries the loopback image reference and uses the loaded image when the registry pull fails. The regression test checks that the bootstrapped container uses the loaded image ID.
+The Docker archive loads as `127.0.0.1:1/buildkit:<tag>` with a Nix-generated tag. Buildx tries the loopback image reference and uses the loaded image when the registry pull fails. The regression test checks that the bootstrapped container uses the loaded image ID.
 
 GitHub Releases attach `buildkit-amd64.tar.gz`, `buildkit-arm64.tar.gz`, and `SHA256SUMS`. Download the archive for the target architecture and the checksum file, then run `sha256sum --ignore-missing --check SHA256SUMS` before `docker load`. Docker reports the image reference after loading.
 
