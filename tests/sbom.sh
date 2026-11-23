@@ -39,8 +39,9 @@ docker buildx create --name "$builder" --driver docker-container --driver-opt "i
 docker buildx inspect --bootstrap "$builder" | tee "$fixture/worker"
 grep -E 'org\.mobyproject\.buildkit\.worker\.snapshotter:[[:space:]]+fuse-overlayfs$' "$fixture/worker"
 test "$(docker inspect --format '{{.Image}}' "buildx_buildkit_${builder}0")" = "$image_id"
+# The OCI exporter needs an image name to populate the in-toto subject.
 docker buildx build --builder "$builder" --progress=plain --platform "linux/$architecture" \
   --provenance=false \
   --attest 'type=sbom,generator=docker.io/docker/buildkit-syft-scanner@sha256:873a7458c3c8ac8e32c7b796c10e1600b07b963d2aa000a72a2d97aaaa2d6315' \
-  --output "type=oci,dest=$fixture/oci.tar" "$fixture/context"
+  --output "type=oci,name=buildkit-sbom-fixture:$architecture,dest=$fixture/oci.tar" "$fixture/context"
 python3 "$(dirname "$0")/verify-spdx.py" "$fixture/oci.tar" "$architecture"
